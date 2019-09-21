@@ -18,6 +18,9 @@
 
 #define A_FREQ 1400
 
+#define M_SHORT 50
+#define M_LONG 200
+
 void setup() {
   // Set up Photoresister
   pinMode(P_PHOTORESIST, INPUT);
@@ -28,9 +31,13 @@ void setup() {
 
 }
 
-void sendTelemData(char data){
-
-  return;
+/**
+ * Converts a telem string to morse data
+ */
+void sendTelemData(char data[20]){
+  for (int i=0; i < 20; i++) {
+     handleMorseChr(data[i]);
+  }
 }
 
 int getTemprature(){
@@ -41,8 +48,48 @@ int getLight(){
   return 0;
 }
 
+void buildTelemString(char *dst, int temp, int light, int avg_temp, int avg_light){
+
+  // START MSG
+  dst[0] =  'B';
+  dst[1] =  'G';
+  dst[2] =  'N';
+  dst[3] =  '1';
+
+  // DATA
+  dst[4] =  '0';
+  dst[5] =  '0';
+  dst[6] =  '0';
+  dst[7] =  '0';
+  dst[8] =  '0';
+  dst[9] =  '0';
+  dst[10] =  '0';
+  dst[11] =  '0';
+  dst[12] =  '0';
+  dst[13] =  '0';
+  dst[14] =  '0';
+  dst[15] =  '0';
+
+  // PARITY
+  dst[16] =  '0';
+
+  // END MSG
+  dst[17] =  'E';
+  dst[18] =  'N';
+  dst[19] =  'D';
+}
+
 void loop() {
-  // put your main code here, to run repeatedly:
+
+  // Read sensors
+
+  // Build telem stream
+  char telem_str[20];
+  buildTelemString(telem_str, 0,0,0,0);
+  sendTelemData(telem_str);
+
+  // Wait
+  delay(5000);
 
 }
 
@@ -127,6 +174,6 @@ void n8 () {dash();dash();dash();dot();dot();shortspace();}
 void n9 () {dash();dash();dash();dash();dot();shortspace();}
 void n0 () {dash();dash();dash();dash();dash();shortspace();}
 void space () {delay (1200);}//space between words
-void dot () {tone(P_TX,A_FREQ); delay (300); noTone(P_TX); delay (300);}//the dot this code make the led on for 300 than off for 300
-void dash () {tone(P_TX,A_FREQ); delay (900); noTone(P_TX); delay (300);}//the dash this code make the led on for 900 than off for 300
-void shortspace () {delay(600);}//space between letters
+void dot () {tone(P_TX,A_FREQ); delay (M_SHORT); noTone(P_TX); delay (M_SHORT);}//the dot this code make the led on for 300 than off for 300
+void dash () {tone(P_TX,A_FREQ); delay (M_LONG); noTone(P_TX); delay (M_SHORT);}//the dash this code make the led on for 900 than off for 300
+void shortspace () {delay(M_LONG);}//space between letters
