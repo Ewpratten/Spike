@@ -57,12 +57,16 @@ void buildTelemString(char *dst, int temp, int light, int avg_temp, int avg_ligh
   dst[3] =  '1';
 
   // DATA
+  // temp
   dst[4] =  '0';
   dst[5] =  '0';
   dst[6] =  '0';
-  dst[7] =  '0';
-  dst[8] =  '0';
-  dst[9] =  '0';
+
+  // light
+  dst[7] =  '0' + ((light/100)%10);
+  dst[8] =  '0' + ((light/10)%10);
+  dst[9] =  '0' + (light%10);
+  
   dst[10] =  '0';
   dst[11] =  '0';
   dst[12] =  '0';
@@ -82,10 +86,12 @@ void buildTelemString(char *dst, int temp, int light, int avg_temp, int avg_ligh
 void loop() {
 
   // Read sensors
+  int light_val = analogRead(P_PHOTORESIST);
+  light_val = map(light_val, 0, 1023, 0, 255);
 
   // Build telem stream
   char telem_str[20];
-  buildTelemString(telem_str, 0,0,0,0);
+  buildTelemString(telem_str, 0,light_val,0,0);
   sendTelemData(telem_str);
 
   // Wait
