@@ -19,6 +19,7 @@
 
 #define P_PHOTORESIST A0
 #define P_TX 7
+#define P_TXLED 6
 #define P_TEMP A1
 
 #define A_FREQ 1300
@@ -39,6 +40,7 @@ void setup() {
   pinMode(P_PHOTORESIST, INPUT);
   pinMode(P_TEMP, INPUT);
   pinMode(P_TX, OUTPUT);
+  pinMode(P_TXLED, OUTPUT);
 
 
   // Connect to host via serial
@@ -212,6 +214,6 @@ void n8 () {dash();dash();dash();dot();dot();shortspace();}
 void n9 () {dash();dash();dash();dash();dot();shortspace();}
 void n0 () {dash();dash();dash();dash();dash();shortspace();}
 void space () {delay (1200);}//space between words
-void dot () {tone(P_TX,A_FREQ); delay (M_SHORT); noTone(P_TX); delay (M_SHORT);}//the dot this code make the led on for 300 than off for 300
-void dash () {tone(P_TX,A_FREQ); delay (M_LONG); noTone(P_TX); delay (M_SHORT);}//the dash this code make the led on for 900 than off for 300
+void dot () {tone(P_TX,A_FREQ); digitalWrite(P_TXLED, HIGH); delay (M_SHORT); noTone(P_TX); digitalWrite(P_TXLED, LOW); delay (M_SHORT);}//the dot this code make the led on for 300 than off for 300
+void dash () {tone(P_TX,A_FREQ); digitalWrite(P_TXLED, HIGH); delay (M_LONG); noTone(P_TX); digitalWrite(P_TXLED, LOW); delay (M_SHORT);}//the dash this code make the led on for 900 than off for 300
 void shortspace () {delay(M_LONG);}//space between letters
