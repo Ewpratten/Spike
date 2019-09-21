@@ -8,6 +8,10 @@
  *  
  * Output:
  *  - Radio tx
+ *  
+ * Input:
+ *  - Photoresister
+ *  - Temprature sensor
  * 
  */
 
@@ -15,15 +19,26 @@
 
 #define P_PHOTORESIST A0
 #define P_TX 7
+#define P_TEMP A1
 
-#define A_FREQ 1400
+#define A_FREQ 1300
 
-#define M_SHORT 50
 #define M_LONG 200
+#define M_SHORT M_LONG/3
+
+
+/* Global avg */
+long total_light = 0;
+int light_readings = 0;
+
+long total_temp = 0;
+int temp_readings = 0;
 
 void setup() {
   // Set up Photoresister
   pinMode(P_PHOTORESIST, INPUT);
+  pinMode(P_TEMP, INPUT);
+  pinMode(P_TX, OUTPUT);
 
 
   // Connect to host via serial
@@ -41,11 +56,11 @@ void sendTelemData(char data[20]){
 }
 
 int getTemprature(){
-  return 0;
+  return analogRead(P_TEMP);
 }
 
 int getLight(){
-  return 0;
+  return analogRead(P_PHOTORESIST);
 }
 
 void buildTelemString(char *dst, int temp, int light, int avg_temp, int avg_light){
@@ -58,24 +73,28 @@ void buildTelemString(char *dst, int temp, int light, int avg_temp, int avg_ligh
 
   // DATA
   // temp
-  dst[4] =  '0';
-  dst[5] =  '0';
-  dst[6] =  '0';
+  dst[4] =  '0' + ((temp/100)%10);
+  dst[5] =  '0' + ((temp/10)%10);
+  dst[6] =  '0' + (temp%10);
 
   // light
   dst[7] =  '0' + ((light/100)%10);
   dst[8] =  '0' + ((light/10)%10);
   dst[9] =  '0' + (light%10);
-  
-  dst[10] =  '0';
-  dst[11] =  '0';
-  dst[12] =  '0';
-  dst[13] =  '0';
-  dst[14] =  '0';
-  dst[15] =  '0';
+
+
+  // avg temp
+  dst[10] =  '0' + ((avg_temp/100)%10);
+  dst[11] =  '0' + ((avg_temp/10)%10);
+  dst[12] =  '0' + (avg_temp%10);
+
+  // avg light
+  dst[13] =  '0' + ((avg_light/100)%10);
+  dst[14] =  '0' + ((avg_light/10)%10);
+  dst[15] =  '0' + (avg_light%10);
 
   // PARITY
-  dst[16] =  '0';
+  dst[16] =  '0' + (1 + temp + light + avg_temp + avg_light) % 2;
 
   // END MSG
   dst[17] =  'E';
@@ -85,13 +104,26 @@ void buildTelemString(char *dst, int temp, int light, int avg_temp, int avg_ligh
 
 void loop() {
 
-  // Read sensors
-  int light_val = analogRead(P_PHOTORESIST);
+  /* Read sensors */
+
+  // Light
+  int light_val = getLight();
   light_val = map(light_val, 0, 1023, 0, 255);
 
-  // Build telem stream
+  total_light += light_val;
+  light_readings++;
+
+  // Temprature
+  int temp_val = getTemprature();
+  temp_val = map(temp_val, 0, 1023, 0, 255);
+
+  total_temp += temp_val;
+  temp_readings++;
+  
+
+  /* Build telem stream */
   char telem_str[20];
-  buildTelemString(telem_str, 0,light_val,0,0);
+  buildTelemString(telem_str, temp_val, light_val, (total_temp / temp_readings), (total_light / light_readings));
   sendTelemData(telem_str);
 
   // Wait
@@ -102,6 +134,7 @@ void loop() {
 /* Begin Morse helpers*/
 
 void handleMorseChr(char input) {
+    Serial.println (input);//print the latter saved in the input var
     if (input == 'a' || input == 'A') {lA();}//if the input is a or A go to function lA
     if (input == 'b' || input == 'B') {lB();}//same but with b letter
     if (input == 'c' || input == 'C') {lC();}
@@ -139,7 +172,6 @@ void handleMorseChr(char input) {
     if (input == '9') {n9();}
     if (input == '0') {n0();}
     if (input == ' ') {space();}//the space
-    Serial.println (input);//print the latter saved in the input var
 }
 
 //fonctions for the letters and the numbers
