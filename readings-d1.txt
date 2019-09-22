@@ -1,0 +1,9 @@
+BGN10270420270010END
+
+Reading:
+27 degs
+42/255 light
+
+AVG:
+27 degs
+1/255 light

@@ -65,7 +65,22 @@ int getLight(){
   return analogRead(P_PHOTORESIST);
 }
 
+int toDEGS(int reading){
+//  double output;
+//
+//  output = (double) reading / 1024;
+//  output *=5; // Get voltage
+//  output -= 0.5; // calc offset
+//  output *= 100; // Get temp
+//
+//  return (int) output;
+  return reading * 0.48828125;
+}
+
 void buildTelemString(char *dst, int temp, int light, int avg_temp, int avg_light){
+
+  temp = abs(temp);
+  avg_temp = abs(avg_temp);
 
   // START MSG
   dst[0] =  'B';
@@ -117,7 +132,8 @@ void loop() {
 
   // Temprature
   int temp_val = getTemprature();
-  temp_val = map(temp_val, 0, 1023, 0, 255);
+//  temp_val = map(temp_val, 0, 1023, 0, 255);
+  temp_val = toDEGS(temp_val);
 
   total_temp += temp_val;
   temp_readings++;
@@ -125,7 +141,7 @@ void loop() {
 
   /* Build telem stream */
   char telem_str[20];
-  buildTelemString(telem_str, temp_val, light_val, (total_temp / temp_readings), (total_light / light_readings));
+  buildTelemString(telem_str, temp_val , light_val, (total_temp / temp_readings), (total_light / light_readings));
   sendTelemData(telem_str);
 
   // Wait
